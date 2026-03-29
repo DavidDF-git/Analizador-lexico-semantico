@@ -1,0 +1,110 @@
+package codigo;
+
+import java_cup.runtime.Symbol;
+
+parser code
+{:
+    private Symbol s;
+    
+    public void syntax_error(Symbol s){
+        this.s = s;
+    }
+
+    public Symbol getS(){
+        return this.s;
+}
+:};
+
+terminal Comillas, T_dato, If, Else, Do, While, For,
+    Igual, Suma, Resta, Multiplicacion, Division, Op_relacional,
+    Parentesis_a, Parentesis_c, Llave_a, Llave_c, 
+    Main, P_coma, Identificador, Numero, Include, Numeral,
+    Punto, Modulo, Op_logico;
+
+/* No terminales */
+non terminal PROGRAMA, MAIN_FUNC, CUERPO, SENTENCIA, DECLARACION_VAR,
+            FUNCION, PARAMETRO, ASIGNACION, EXPRESION, TERMINO,
+            FACTOR, IF_SENTENCIA, EXPRESION_BOOLEANA, WHILE_SENTENCIA,
+            FOR_SENTENCIA, LISTA_INCLUDES;
+
+// Precedencia de operadores
+precedence left Op_logico;
+precedence left Op_relacional;
+precedence left Suma, Resta;
+precedence left Multiplicacion, Division, Modulo;
+
+start with PROGRAMA;
+
+PROGRAMA ::= 
+    LISTA_INCLUDES FUNCION MAIN_FUNC | LISTA_INCLUDES MAIN_FUNC 
+;
+
+LISTA_INCLUDES ::= 
+    Numeral Include Comillas Identificador Punto Identificador Comillas LISTA_INCLUDES
+    | /*vacío*/
+;
+
+MAIN_FUNC ::= 
+    T_dato Main Parentesis_a Parentesis_c Llave_a CUERPO Llave_c
+;
+
+CUERPO ::= SENTENCIA CUERPO | /*vacío*/;
+
+SENTENCIA ::= 
+    DECLARACION_VAR P_coma
+    | ASIGNACION P_coma
+    | IF_SENTENCIA
+    | WHILE_SENTENCIA
+    | FOR_SENTENCIA
+;
+
+DECLARACION_VAR ::= 
+    T_dato Identificador
+    | T_dato Identificador Igual Numero
+;
+
+FUNCION ::= T_dato Identificador Parentesis_a PARAMETRO Parentesis_c Llave_a Llave_c;
+
+PARAMETRO ::= 
+    T_dato Identificador | /*vacío*/
+;
+
+ASIGNACION ::= Identificador Igual EXPRESION;
+
+EXPRESION ::= 
+    EXPRESION Suma TERMINO
+    | EXPRESION Resta TERMINO
+    | TERMINO
+;
+
+TERMINO ::= 
+    TERMINO Multiplicacion FACTOR
+    | TERMINO Division FACTOR
+    | FACTOR
+;
+
+FACTOR ::= 
+    Identificador
+    | Numero
+    | Parentesis_a EXPRESION Parentesis_c
+;
+
+IF_SENTENCIA ::= 
+    If Parentesis_a EXPRESION_BOOLEANA Parentesis_c Llave_a CUERPO Llave_c
+    | If Parentesis_a EXPRESION_BOOLEANA Parentesis_c Llave_a CUERPO Llave_c Else Llave_a CUERPO Llave_c
+;
+
+EXPRESION_BOOLEANA ::= 
+    EXPRESION Op_relacional EXPRESION
+;
+
+WHILE_SENTENCIA ::= 
+    While Parentesis_a EXPRESION_BOOLEANA Parentesis_c Llave_a CUERPO Llave_c
+    | Do Llave_a CUERPO Llave_c While Parentesis_a EXPRESION_BOOLEANA Parentesis_c P_coma
+;
+
+FOR_SENTENCIA ::= 
+    For Parentesis_a T_dato ASIGNACION P_coma EXPRESION_BOOLEANA P_coma ASIGNACION Parentesis_c Llave_a CUERPO Llave_c
+;
+
+
